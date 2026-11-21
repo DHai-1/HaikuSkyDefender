@@ -4,15 +4,15 @@
 #include <View.h>
 #include <Window.h>
 
-#include <math.h>
 #include <cstdio>
+#include <math.h>
 #include <stdlib.h>
 #include <time.h>
 
-using namespace std;
-
 enum { MSG_FRAME = 'fram' };
 const int32 kMeteorCount = 6;
+
+using namespace std;
 
 struct Meteor {
 	float x;
@@ -25,7 +25,7 @@ class GameView : public BView {
 public:
 	GameView()
 		: BView(BRect(0, 0, 700, 520), "game", B_FOLLOW_ALL,
-    		B_WILL_DRAW | B_NAVIGABLE),
+			B_WILL_DRAW | B_NAVIGABLE),
 		  fShipX(320), fScore(0), fLives(3), fGameOver(false)
 	{
 		SetViewColor(8, 16, 38);
@@ -42,45 +42,72 @@ public:
 	void Draw(BRect) override
 	{
 		BRect bounds = Bounds();
-		SetHighColor(8, 16, 38);
+		SetHighColor(4, 9, 28);
 		FillRect(bounds);
 
-		// Star field
-		SetHighColor(170, 205, 255);
-		for (int32 i = 0; i < 70; i++) {
-			float x = (i * 83) % (int32)bounds.Width();
-			float y = (i * 47) % (int32)(bounds.Height() - 70);
-			FillEllipse(BRect(x, y, x + 2, y + 2));
+		// Decorative nebula bands and layered star field.
+		SetHighColor(16, 31, 80);
+		FillEllipse(BRect(80, 100, 510, 340));
+		SetHighColor(20, 54, 92);
+		FillEllipse(BRect(420, 185, 850, 480));
+		for (int32 i = 0; i < 105; i++) {
+			float x = (i * 83 + 17) % (int32)bounds.Width();
+			float y = 80 + ((i * 47 + 13) % (int32)(bounds.Height() - 130));
+			int32 size = i % 11 == 0 ? 4 : (i % 4 == 0 ? 3 : 2);
+			SetHighColor(i % 3 == 0 ? 170 : 210, i % 3 == 1 ? 210 : 240, 255);
+			FillEllipse(BRect(x, y, x + size, y + size));
 		}
 
+		// HUD panel.
+		SetHighColor(8, 22, 58);
+		FillRect(BRect(10, 10, bounds.right - 10, 73));
+		SetHighColor(65, 220, 255);
+		StrokeRect(BRect(10, 10, bounds.right - 10, 73));
 		SetHighColor(80, 220, 255);
 		SetFontSize(23);
-		DrawString("HAIKU SKY DEFENDER", BPoint(22, 34));
+		DrawString("HAIKU SKY DEFENDER", BPoint(24, 37));
 		SetFontSize(13);
-		DrawString("A / D: move     R: restart", BPoint(24, 57));
+		SetHighColor(155, 230, 255);
+		DrawString("ARCADE MISSION 01  |  A / D: MOVE  |  R: RESTART", BPoint(25, 59));
 
 		char info[80];
-		snprintf(info, sizeof(info), "SCORE: %ld     LIVES: %ld", (long)fScore, (long)fLives);
+		snprintf(info, sizeof(info), "SCORE: %ld     LIVES: %ld",
+			(long)fScore, (long)fLives);
 		SetHighColor(255, 230, 110);
-		DrawString(info, BPoint(bounds.right - 220, 34));
+		DrawString(info, BPoint(bounds.right - 210, 37));
 
 		for (int32 i = 0; i < kMeteorCount; i++) {
-			SetHighColor(255, 118, 65);
-			FillEllipse(BRect(fMeteors[i].x, fMeteors[i].y,
-				fMeteors[i].x + fMeteors[i].size, fMeteors[i].y + fMeteors[i].size));
-			SetHighColor(255, 190, 105);
-			StrokeEllipse(BRect(fMeteors[i].x, fMeteors[i].y,
-				fMeteors[i].x + fMeteors[i].size, fMeteors[i].y + fMeteors[i].size));
+			float x = fMeteors[i].x;
+			float y = fMeteors[i].y;
+			float s = fMeteors[i].size;
+			SetHighColor(108, 75, 82);
+			FillEllipse(BRect(x - 3, y - 3, x + s + 3, y + s + 3));
+			SetHighColor(236, 113, 69);
+			FillEllipse(BRect(x, y, x + s, y + s));
+			SetHighColor(255, 191, 100);
+			StrokeEllipse(BRect(x, y, x + s, y + s));
+			SetHighColor(171, 69, 59);
+			FillEllipse(BRect(x + s * .22f, y + s * .25f, x + s * .48f, y + s * .50f));
+			FillEllipse(BRect(x + s * .58f, y + s * .55f, x + s * .78f, y + s * .75f));
 		}
 
-		float shipY = bounds.bottom - 52;
-		SetHighColor(70, 240, 190);
-		FillRect(BRect(fShipX, shipY, fShipX + 48, shipY + 18));
-		SetHighColor(210, 255, 245);
-		FillRect(BRect(fShipX + 17, shipY - 10, fShipX + 31, shipY));
-		SetHighColor(70, 150, 255);
-		StrokeLine(BPoint(fShipX, shipY + 18), BPoint(fShipX - 12, shipY + 29));
-		StrokeLine(BPoint(fShipX + 48, shipY + 18), BPoint(fShipX + 60, shipY + 29));
+		// Player ship, cockpit, wings and animated engine flame.
+		float shipY = bounds.bottom - 62;
+		SetHighColor(255, 140, 55);
+		FillTriangle(BPoint(fShipX + 16, shipY + 27), BPoint(fShipX + 25, shipY + 48),
+			BPoint(fShipX + 34, shipY + 27));
+		SetHighColor(44, 186, 255);
+		FillTriangle(BPoint(fShipX + 25, shipY - 20), BPoint(fShipX - 12, shipY + 28),
+			BPoint(fShipX + 62, shipY + 28));
+		SetHighColor(53, 241, 199);
+		FillTriangle(BPoint(fShipX + 25, shipY - 12), BPoint(fShipX + 1, shipY + 24),
+			BPoint(fShipX + 49, shipY + 24));
+		SetHighColor(212, 255, 250);
+		FillEllipse(BRect(fShipX + 16, shipY - 4, fShipX + 34, shipY + 14));
+		SetHighColor(20, 76, 146);
+		FillEllipse(BRect(fShipX + 19, shipY - 2, fShipX + 31, shipY + 9));
+		SetHighColor(125, 245, 255);
+		StrokeLine(BPoint(fShipX - 12, shipY + 28), BPoint(fShipX + 62, shipY + 28));
 
 		if (fGameOver) {
 			SetHighColor(0, 0, 0, 190);
@@ -141,7 +168,7 @@ private:
 
 	bool HitsShip(const Meteor& meteor)
 	{
-		float shipY = Bounds().bottom - 52;
+		float shipY = Bounds().bottom - 62;
 		return meteor.x + meteor.size > fShipX && meteor.x < fShipX + 48
 			&& meteor.y + meteor.size > shipY && meteor.y < shipY + 25;
 	}
