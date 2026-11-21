@@ -24,7 +24,8 @@ struct Meteor {
 class GameView : public BView {
 public:
 	GameView()
-		: BView("game", B_WILL_DRAW | B_NAVIGABLE),
+		: BView(BRect(0, 0, 700, 520), "game", B_FOLLOW_ALL,
+    		B_WILL_DRAW | B_NAVIGABLE),
 		  fShipX(320), fScore(0), fLives(3), fGameOver(false)
 	{
 		SetViewColor(8, 16, 38);
