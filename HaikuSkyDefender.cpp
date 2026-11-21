@@ -5,8 +5,11 @@
 #include <Window.h>
 
 #include <math.h>
+#include <cstdio>
 #include <stdlib.h>
 #include <time.h>
+
+using namespace std;
 
 enum { MSG_FRAME = 'fram' };
 const int32 kMeteorCount = 6;
